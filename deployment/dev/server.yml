@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-signature-server
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dev-signature-server
+  template:
+    metadata:
+      labels:
+        app: dev-signature-server
+    spec:
+      containers:
+        - name: server
+          image: image-repo/signature-server:latest
+          args: ["serve"]
+          ports:
+          - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /file
+          env:
+            - name: CONFIG_FILE
+              value: /file/config.yml
+          livenessProbe:
+            httpGet:
+              path: /system/check
+              port: 7070
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /system/check
+              port: 7070
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "300Mi"
+              cpu: "300m"
+            limits:
+              memory: "300Mi"
+              cpu: "300m"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: dev-signature-server-config
+      imagePullSecrets:
+      - name: dev-login
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dev-signature-server
+  namespace: default
+spec:
+  selector:
+    app: dev-signature-server
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
