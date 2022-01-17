@@ -1,0 +1,278 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a signature server as defined by summitto coding challenge",
+        "title": "Signature Server",
+        "termsOfService": "tbd",
+        "contact": {
+            "name": "Rezoan Tamal",
+            "email": "rezoan.tamal@gmail.com"
+        },
+        "version": "v1.0"
+    },
+    "host": "example.com/server",
+    "basePath": "/",
+    "paths": {
+        "/public_key": {
+            "get": {
+                "description": "Returns a JSON object containing the public key of the daemon key",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Signature"
+                ],
+                "summary": "Get public key corresponding to the daemon_key",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.publicKeyRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/signature": {
+            "post": {
+                "description": "Takes a list of transaction identifiers, and builds a JSON array of strings containing the base64-encoded transaction blobs indicated by the given identifiers. It signs this array (serialised as JSON without any whitespace) using the daemon private key. Finally, it returns the array that was signed, as well as the signature as a base64 string.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Signature"
+                ],
+                "summary": "Sign and return transactions",
+                "parameters": [
+                    {
+                        "description": "All fields are mandatory",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.signTransactionRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.signTransactionRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/transaction": {
+            "put": {
+                "description": "Takes a blob of data (arbitrary bytes) representing the transaction data in the form of a base64 string, and remembers it in memory. Returns a random, unique identifier for the transaction.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "Create a transaction record",
+                "parameters": [
+                    {
+                        "description": "All fields are mandatory",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.createTransactionRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.createTransactionRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/verify": {
+            "post": {
+                "description": "Takes a message and the corresponding signature to verify it. Returns true or false as verification result.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Signature"
+                ],
+                "summary": "Verify a message using signature",
+                "parameters": [
+                    {
+                        "description": "All fields are mandatory",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.signTransactionRes"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.verifySignatureRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/cjson.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.createTransactionRequestBody": {
+            "type": "object",
+            "properties": {
+                "txn": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.createTransactionRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.publicKeyRes": {
+            "type": "object",
+            "properties": {
+                "public_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.signTransactionRequestBody": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "api.signTransactionRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signature": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.verifySignatureRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "cjson.GenericErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

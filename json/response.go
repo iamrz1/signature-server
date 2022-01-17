@@ -62,3 +62,7 @@ func ServeError(w http.ResponseWriter, err *cerror.APIError) {
 	}
 	res.serveJSON(w)
 }
+
+type GenericErrorResponse struct {
+	Message string
+}

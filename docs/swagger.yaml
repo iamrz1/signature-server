@@ -1,0 +1,188 @@
+basePath: /
+definitions:
+  api.createTransactionRequestBody:
+    properties:
+      txn:
+        type: string
+    type: object
+  api.createTransactionRes:
+    properties:
+      id:
+        type: integer
+    type: object
+  api.publicKeyRes:
+    properties:
+      public_key:
+        type: string
+    type: object
+  api.signTransactionRequestBody:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  api.signTransactionRes:
+    properties:
+      message:
+        items:
+          type: string
+        type: array
+      signature:
+        type: string
+    type: object
+  api.verifySignatureRes:
+    properties:
+      message:
+        type: boolean
+    type: object
+  cjson.GenericErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: example.com/server
+info:
+  contact:
+    email: rezoan.tamal@gmail.com
+    name: Rezoan Tamal
+  description: This is a signature server as defined by summitto coding challenge
+  termsOfService: tbd
+  title: Signature Server
+  version: v1.0
+paths:
+  /public_key:
+    get:
+      description: Returns a JSON object containing the public key of the daemon key
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.publicKeyRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+      summary: Get public key corresponding to the daemon_key
+      tags:
+      - Signature
+  /signature:
+    post:
+      consumes:
+      - application/json
+      description: Takes a list of transaction identifiers, and builds a JSON array
+        of strings containing the base64-encoded transaction blobs indicated by the
+        given identifiers. It signs this array (serialised as JSON without any whitespace)
+        using the daemon private key. Finally, it returns the array that was signed,
+        as well as the signature as a base64 string.
+      parameters:
+      - description: All fields are mandatory
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/api.signTransactionRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.signTransactionRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+      summary: Sign and return transactions
+      tags:
+      - Signature
+  /transaction:
+    put:
+      consumes:
+      - application/json
+      description: Takes a blob of data (arbitrary bytes) representing the transaction
+        data in the form of a base64 string, and remembers it in memory. Returns a
+        random, unique identifier for the transaction.
+      parameters:
+      - description: All fields are mandatory
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/api.createTransactionRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.createTransactionRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+      summary: Create a transaction record
+      tags:
+      - Transaction
+  /verify:
+    post:
+      consumes:
+      - application/json
+      description: Takes a message and the corresponding signature to verify it. Returns
+        true or false as verification result.
+      parameters:
+      - description: All fields are mandatory
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/api.signTransactionRes'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.verifySignatureRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/cjson.GenericErrorResponse'
+      summary: Verify a message using signature
+      tags:
+      - Signature
+swagger: "2.0"

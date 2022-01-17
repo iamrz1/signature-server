@@ -7,8 +7,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "signature-server",
-	Short: "sign and verify digital data",
+	Version: "v1.0",
+	Use:     "signature-server",
+	Short:   "sign and verify digital data",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
