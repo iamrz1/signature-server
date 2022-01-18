@@ -1,0 +1,15 @@
+### Q1. What are, according to you, three most underrated language features and why?
+In my opinion, three most underrated language features are:
+
+- 1. Simplicity: A programming language with simple and clear concepts offers gentle learning curve and often experience faster and wider adoption. Yet simplicity is one of the most difficult feature to achieve without sacrificing capability or performance. Therefore, striking the difficult balance of simplicity with not too many compromises is one of the most underrated language features in my opinion.
+- 2. Consistency: A programming language should be consistent in terms of syntax and semantics. Changing syntax and semantics between major releases can be frustrating and off-putting to programmers in general. 
+- 3. Dependency Management: Dependency management is a major issue for a lot of programming languages, especially in the early days. I remember struggling with glide scripts for golang projects to fetch dependencies, only to be infuriated by issues and errors. So I think robust dependency management system is one of the most important yet least talked about features of a programming language.
+
+### Q2. How can Go still shoot you in the foot?
+Well, you can shoot yourself in the foot in any language if you are not careful. In efficient code, memory leaks, null pointer exceptions, panics, go version incompatibility for dependencies can all come to bite back if not handled with care.
+
+I have a personal experience of shooting myself in the foot though. It was more of a system design issue than coding mistake. Basically we replaced an old server written in python with a new server written in go. Before my time in the company, someone who is not friend of the company, used a single api to attack them, which resulted in the server (written in python) being down for a while. Years later, that same person did the same thing with our signup api on the new server (written in golang). This time however, the server just scaled to keep up, resulting in massive number of signup requests in our Database. It was a problem, because we didn't even realize that there was an attack, and we had a bunch of spam data that we had to get rid of. So, we sort of ended up suffering from success and had to implement strict rate limiters everywhere.
+
+### Q3. In your opinion, which cases justify using Unsafe? Explain your points.
+I do not have any practical experience of using the Unsafe library for any project as of now.
+That being said, from what I understand, in times when you need greater flexibility with your pointers, like type conversion or accessing private value from any struct, you'd be more inclined to use the unsafe package. Since it allows great power to play with memory addresses, anywhere you need to access something that's absolute necessary yet unavailable, you could use unsafe package to access them. But with great power, there also must come great responsibility. Anyone using the unsafe package should always abide by the recommendations of the Go team.
