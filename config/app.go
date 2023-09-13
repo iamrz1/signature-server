@@ -2,21 +2,25 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	cerror "signature-server/error"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 const EnvConfigFileKey = "CONFIG_FILE"
-const DefaultConfigFileDir = "config.yml"
+const DefaultConfigFileDir = "config.yaml"
+const DefaultEnvironment = "dev"
 
 // App ...
 type App struct {
-	ServerPort int
-	SystemPort int
-	Timeout    time.Duration
-	DaemonKey  string
+	Environment string
+	ServerPort  int
+	SystemPort  int
+	Timeout     time.Duration
+	DaemonKey   string
+	LogLevel    string
 }
 
 func (cnf *App) validate() error {
@@ -40,16 +44,24 @@ func (cnf *App) validate() error {
 	return nil
 }
 
+func (cnf *App) setDefaults() {
+	if cnf.Environment == "" {
+		cnf.Environment = DefaultEnvironment
+	}
+}
+
 var appCnf App
 var appErr error
 var appOnce = sync.Once{}
 
 func loadApp() {
 	appCnf = App{
-		ServerPort: viper.GetInt("app.server_port"),
-		SystemPort: viper.GetInt("app.system_port"),
-		Timeout:    viper.GetDuration("app.timeout") * time.Second,
-		DaemonKey:  viper.GetString("app.daemon_key"),
+		Environment: viper.GetString("app.environment"),
+		ServerPort:  viper.GetInt("app.server_port"),
+		SystemPort:  viper.GetInt("app.system_port"),
+		Timeout:     viper.GetDuration("app.timeout") * time.Second,
+		DaemonKey:   viper.GetString("app.daemon_key"),
+		LogLevel:    viper.GetString("app.log_level"),
 	}
 }
 
@@ -58,6 +70,7 @@ func AppCnf() (App, error) {
 	appOnce.Do(func() {
 		read()
 		loadApp()
+		appCnf.setDefaults()
 		appErr = appCnf.validate()
 	})
 	return appCnf, appErr

@@ -3,15 +3,17 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/go-chi/chi"
-	chiware "github.com/go-chi/chi/middleware"
 	"net/http"
 	"signature-server/data"
 	_ "signature-server/docs"
 	cerror "signature-server/error"
 	cjson "signature-server/json"
+	"signature-server/logger"
 	"signature-server/middleware"
-	"signature-server/util"
+	"signature-server/model"
+
+	"github.com/go-chi/chi"
+	chiware "github.com/go-chi/chi/middleware"
 )
 
 type signature struct {
@@ -33,10 +35,10 @@ func NewSignatureHandler(sStore data.SignatureStore, tStore data.TransactionStor
 }
 
 func (api *signature) registerMiddleware() {
-	api.Use(util.GenReqID)
+	api.Use(logger.GenReqID)
 	api.Use(chiware.Logger)
-	api.Use(middleware.RequestLogger(true))
-	api.Use(middleware.ResponseLogger(true))
+	api.Use(middleware.RequestLogger())
+	api.Use(middleware.ResponseLogger())
 }
 
 func (api *signature) registerEndpoints() {
@@ -53,17 +55,13 @@ func (api *signature) registerEndpoints() {
 // @Description Returns a JSON object containing the public key of the daemon key
 // @Tags Signature
 // @Produce  json
-// @Success 200 {object} publicKeyRes
+// @Success 200 {object} model.PublicKeyRes
 // @Failure 400 {object} cjson.GenericErrorResponse
 // @Failure 422 {object} cjson.GenericErrorResponse
 // @Failure 500 {object} cjson.GenericErrorResponse
 // @Router /public_key [get]
 func (api *signature) getPublicKey(w http.ResponseWriter, r *http.Request) {
-	cjson.ServeData(w, publicKeyRes{PublicKey: api.sStore.GetPublicKey()})
-}
-
-type publicKeyRes struct {
-	PublicKey string `json:"public_key"`
+	cjson.ServeData(w, model.PublicKeyRes{PublicKey: api.sStore.GetPublicKey()})
 }
 
 // createTransaction godoc
@@ -72,19 +70,20 @@ type publicKeyRes struct {
 // @Tags Transaction
 // @Accept  json
 // @Produce  json
-// @Param  Body body createTransactionRequestBody true "All fields are mandatory"
-// @Success 200 {object} createTransactionRes
+// @Param Body body model.CreateTransactionReq true "All fields are mandatory"
+// @Success 200 {object} model.CreateTransactionRes
 // @Failure 400 {object} cjson.GenericErrorResponse
 // @Failure 422 {object} cjson.GenericErrorResponse
 // @Failure 500 {object} cjson.GenericErrorResponse
 // @Router /transaction [put]
 func (api *signature) createTransaction(w http.ResponseWriter, r *http.Request) {
-	body := &createTransactionRequestBody{}
+	body := &model.CreateTransactionReq{}
 	if err := cjson.ParseBody(r, body); err != nil {
 		cjson.ServeError(w, cerror.NewAPIError(http.StatusBadRequest, "Unable to parse body", err))
 		return
 	}
 	if err := body.Validate(); err != nil {
+		logger.Errorf("Invalid request body %+v", err)
 		cjson.ServeError(w, cerror.NewAPIError(http.StatusUnprocessableEntity, "Invalid request body", err))
 		return
 	}
@@ -98,28 +97,7 @@ func (api *signature) createTransaction(w http.ResponseWriter, r *http.Request) 
 		cjson.ServeError(w, cerror.NewAPIError(http.StatusInternalServerError, "Something went wrong", err))
 		return
 	}
-	cjson.ServeData(w, createTransactionRes{ID: id})
-}
-
-type createTransactionRequestBody struct {
-	TxnData string `json:"txn"`
-}
-
-func (b *createTransactionRequestBody) Validate() error {
-	err := cerror.ValidationError{}
-	if b.TxnData == "" {
-		err.Add("txn", "required")
-	}
-
-	if len(err) != 0 {
-		return err
-	}
-
-	return nil
-}
-
-type createTransactionRes struct {
-	ID int64 `json:"id"`
+	cjson.ServeData(w, model.CreateTransactionRes{ID: id})
 }
 
 // signTransactions godoc
@@ -128,14 +106,14 @@ type createTransactionRes struct {
 // @Tags Signature
 // @Accept  json
 // @Produce  json
-// @Param  Body body signTransactionRequestBody true "All fields are mandatory"
-// @Success 200 {object} signTransactionRes
+// @Param Body body model.SignTransactionReq true "All fields are mandatory"
+// @Success 200 {object} model.SignTransactionRes
 // @Failure 400 {object} cjson.GenericErrorResponse
 // @Failure 422 {object} cjson.GenericErrorResponse
 // @Failure 500 {object} cjson.GenericErrorResponse
 // @Router /signature [post]
 func (api *signature) signTransactions(w http.ResponseWriter, r *http.Request) {
-	body := &signTransactionRequestBody{}
+	body := &model.SignTransactionReq{}
 	if err := cjson.ParseBody(r, body); err != nil {
 		cjson.ServeError(w, cerror.NewAPIError(http.StatusBadRequest, "Unable to parse body", err))
 		return
@@ -150,22 +128,18 @@ func (api *signature) signTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	messages := make([]string, 0)
 	message, err := json.Marshal(txns)
 	if err != nil {
 		cjson.ServeError(w, cerror.NewAPIError(http.StatusInternalServerError, "Something went wrong", err))
 		return
 	}
+	for _, txn := range txns {
+		msg := base64.StdEncoding.EncodeToString(txn)
+		messages = append(messages, msg)
+	}
 
-	cjson.ServeData(w, cjson.Object{"message": txns, "signature": api.sStore.SignData(message)})
-}
-
-type signTransactionRequestBody struct {
-	IDs []int64 `json:"ids"`
-}
-
-type signTransactionRes struct {
-	Message   []string `json:"message"`
-	Signature string   `json:"signature"`
+	cjson.ServeData(w, model.SignTransactionRes{Message: messages, Signature: api.sStore.SignData(message)})
 }
 
 // verifySignature godoc
@@ -174,14 +148,14 @@ type signTransactionRes struct {
 // @Tags Signature
 // @Accept  json
 // @Produce  json
-// @Param  Body body signTransactionRes true "All fields are mandatory"
-// @Success 200 {object} verifySignatureRes
-// @Failure 400 {object} cjson.GenericErrorResponse
-// @Failure 422 {object} cjson.GenericErrorResponse
-// @Failure 500 {object} cjson.GenericErrorResponse
+// @Param Body body model.VerifySignatureReq true "All fields are mandatory"
+// @Success 200 {object} model.VerifySignatureRes
+// @Failure 400 {object} cjson.VerifySignatureRes
+// @Failure 422 {object} cjson.VerifySignatureRes
+// @Failure 500 {object} cjson.VerifySignatureRes
 // @Router /verify [post]
 func (api *signature) verifySignature(w http.ResponseWriter, r *http.Request) {
-	body := &verifySignatureRequestBody{}
+	body := &model.VerifySignatureReq{}
 	if err := cjson.ParseBody(r, body); err != nil {
 		cjson.ServeError(w, cerror.NewAPIError(http.StatusBadRequest, "Unable to parse body", err))
 		return
@@ -205,31 +179,5 @@ func (api *signature) verifySignature(w http.ResponseWriter, r *http.Request) {
 
 	res := api.sStore.VerifySignature(message, sig)
 
-	cjson.ServeData(w, verifySignatureRes{Message: res})
-}
-
-type verifySignatureRequestBody struct {
-	Message   interface{} `json:"message"`
-	Signature string      `json:"signature"`
-}
-
-func (b *verifySignatureRequestBody) Validate() error {
-	err := cerror.ValidationError{}
-	if b.Message == nil {
-		err.Add("message", "required")
-	}
-
-	if b.Signature == "" {
-		err.Add("signature", "required")
-	}
-
-	if len(err) != 0 {
-		return err
-	}
-
-	return nil
-}
-
-type verifySignatureRes struct {
-	Message bool `json:"message"`
+	cjson.ServeData(w, model.VerifySignatureRes{Message: res})
 }

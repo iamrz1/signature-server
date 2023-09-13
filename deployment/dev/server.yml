@@ -27,13 +27,13 @@ spec:
               value: /file/config.yml
           livenessProbe:
             httpGet:
-              path: /system/check
+              path: /system/live
               port: 7070
             initialDelaySeconds: 15
             periodSeconds: 15
           readinessProbe:
             httpGet:
-              path: /system/check
+              path: /system/ready
               port: 7070
             initialDelaySeconds: 5
             periodSeconds: 5

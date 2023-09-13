@@ -1,4 +1,4 @@
-package util
+package logger
 
 import (
 	"fmt"
@@ -7,22 +7,31 @@ import (
 	"time"
 )
 
-var logger = zerolog.New(zerolog.ConsoleWriter{
-	Out:        os.Stdout,
-	TimeFormat: time.RFC3339,
-	FormatTimestamp: func(i interface{}) string {
-		return fmt.Sprintf("%v", i)
-	},
-	FormatLevel: func(i interface{}) string {
-		return fmt.Sprintf("[%-5v]", i)
-	},
-	FormatFieldName: func(i interface{}) string {
-		return fmt.Sprintf("%v:", i)
-	},
-	FormatFieldValue: func(i interface{}) string {
-		return fmt.Sprintf("%v", i)
-	},
-}).With().Timestamp().Logger().Hook(ridHook{})
+var logger zerolog.Logger
+
+func InitLogger(level string) {
+	levelInt, err := zerolog.ParseLevel(level)
+	if err != nil {
+		logger = zerolog.New(nil).Level(zerolog.Disabled)
+		return
+	}
+	logger = zerolog.New(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339,
+		FormatTimestamp: func(i interface{}) string {
+			return fmt.Sprintf("%v", i)
+		},
+		FormatLevel: func(i interface{}) string {
+			return fmt.Sprintf("[%-5v]", i)
+		},
+		FormatFieldName: func(i interface{}) string {
+			return fmt.Sprintf("%v:", i)
+		},
+		FormatFieldValue: func(i interface{}) string {
+			return fmt.Sprintf("%v", i)
+		},
+	}).With().Timestamp().Logger().Level(levelInt).Hook(ridHook{})
+}
 
 // Info prints a new message with info level
 func Info(msg string) {

@@ -1,5 +1,4 @@
-config.yml
-configmap.yml
+configmap.yaml
 vendor
 .idea
 server

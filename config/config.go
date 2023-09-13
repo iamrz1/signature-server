@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"os"
-	"signature-server/util"
+	"signature-server/logger"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 var cnfOnce = sync.Once{}
@@ -18,7 +19,7 @@ func read() {
 		viper.SetConfigFile(configFileDir)
 		err := viper.ReadInConfig()
 		if err != nil {
-			util.Fatalf("unable to read config file: %v", err)
+			logger.Fatalf("unable to read config file: %v", err)
 		}
 	})
 }

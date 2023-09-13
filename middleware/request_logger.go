@@ -5,21 +5,20 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"signature-server/util"
+	"signature-server/logger"
 )
 
 // RequestLogger ...
-func RequestLogger(enable bool) func(next http.Handler) http.Handler {
+func RequestLogger() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if enable {
-				util.Infof("Req: %v %v", r.Method, r.URL)
-				if body, err := readIntact(r); err == nil {
-					util.Infof("Body: %v", string(body))
-				} else {
-					util.Error(err.Error())
-				}
+			logger.Infof("Request: [%s] %s%s", r.Method, r.Host, r.URL)
+			if body, err := readIntact(r); err == nil {
+				logger.Debugf("\n%v\n", string(body))
+			} else {
+				logger.Error(err.Error())
 			}
+
 			next.ServeHTTP(w, r)
 		})
 	}

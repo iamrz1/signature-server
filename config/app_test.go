@@ -1,11 +1,12 @@
 package config
 
 import (
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"sync"
 	"testing"
+
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestApp(t *testing.T) {

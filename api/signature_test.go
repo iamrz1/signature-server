@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"signature-server/api"
+	"signature-server/data/memory"
 	"testing"
 
 	"github.com/kinbiko/jsonassert"
 	"github.com/stretchr/testify/assert"
-	"signature-server/data/memory"
-
-	"signature-server/api"
 )
 
 const (

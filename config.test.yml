@@ -1,5 +1,0 @@
-app:
-    server_port: 8080
-    system_port: 7070
-    timeout: 5
-    daemon_key: G7bxZbii5tgq1X8rgdOmy/zSwaOSKtHleSSw41YhJ2aeErC62pZtkQRBEA4xNqqTd+VouCf5/PPvTgW9seqyBg==

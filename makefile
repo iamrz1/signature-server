@@ -7,8 +7,8 @@ test:
 build:
 	go build -o server
 
-run:
-	export config_file=config.yml && ./server serve
+run: build
+	export CONFIG_FILE=config.yaml && ./server
 
-test_run:
-	export config_file=config.yml && go run main.go serve
+dev:
+	export CONFIG_FILE=config-dev.yaml && go run main.go serve

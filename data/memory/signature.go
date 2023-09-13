@@ -45,9 +45,7 @@ func (s *signatureStore) GetPublicKey() string {
 }
 
 func (s *signatureStore) SignData(data []byte) string {
-	signature := ed25519.Sign(s.PrivateKey, data)
-
-	return base64.StdEncoding.EncodeToString(signature)
+	return base64.StdEncoding.EncodeToString(ed25519.Sign(s.PrivateKey, data))
 }
 
 func (s *signatureStore) VerifySignature(data, signature []byte) bool {

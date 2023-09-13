@@ -1,12 +1,13 @@
 package api_test
 
 import (
-	"github.com/kinbiko/jsonassert"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"signature-server/api"
 	"testing"
+
+	"github.com/kinbiko/jsonassert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSystemCheck(t *testing.T) {
